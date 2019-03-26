@@ -8,9 +8,16 @@ module.exports = function () {
     var db = mongoose.connect('mongodb://localhost:27017/unisinos-auth');
 
     var UserSchema = new Schema({
+        fullName: {
+            type: String,
+            required: true,
+            trim: true
+        },
         email: {
-            type: String, required: true,
-            trim: true, unique: true,
+            type: String,
+            required: true,
+            trim: true,
+            unique: true,
             match: /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/
         },
         googleProvider: {
@@ -19,16 +26,20 @@ module.exports = function () {
                 token: String
             },
             select: false
+        },
+        healthPrograms: {
+            name: String,
+            subscriptionDate: Date
         }
     });
 
-    UserSchema.set('toJSON', {getters: true, virtuals: true});
+    UserSchema.set('toJSON', { getters: true, virtuals: true });
 
-    UserSchema.statics.upsertGoogleUser = function(accessToken, refreshToken, profile, cb) {
+    UserSchema.statics.upsertGoogleUser = function (accessToken, refreshToken, profile, cb) {
         var that = this;
         return this.findOne({
             'googleProvider.id': profile.id
-        }, function(err, user) {
+        }, function (err, user) {
             // no user was found, lets create a new one
             if (!user) {
                 var newUser = new that({
@@ -40,7 +51,7 @@ module.exports = function () {
                     }
                 });
 
-                newUser.save(function(error, savedUser) {
+                newUser.save(function (error, savedUser) {
                     if (error) {
                         console.log(error);
                     }
