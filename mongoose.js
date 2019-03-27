@@ -49,6 +49,15 @@ module.exports = function () {
         });
     }
 
+    UserSchema.statics.findById = function (userId, callback) {
+         return this.findOne({ _id: userId }, function (error, user) {
+            if (error) {
+                console.log(error);
+            }
+            return callback(error, user);
+        });
+    }
+
     mongoose.model('User', UserSchema);
 
     var HealthProgramSchema = new Schema({
@@ -91,7 +100,7 @@ module.exports = function () {
         });
     }
 
-    HealthProgramSchema.statics.getAll = function (userEmail, callback) {
+    HealthProgramSchema.statics.findAllPrograms = function (userEmail, callback) {
         return this.find({ 'email': userEmail }, function (error, programs) {
             if (error) {
                 console.log(error);
