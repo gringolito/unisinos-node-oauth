@@ -3,16 +3,17 @@
 var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 
-module.exports = function () {
+var db = null;
 
-    var db = mongoose.connect('mongodb://localhost:27017/unisinos-auth');
+module.exports = function () {
+    if (db) {
+        return db;
+    }
+
+    db = mongoose.connect('mongodb://localhost:27017/unisinos-auth');
 
     var UserSchema = new Schema({
-        fullName: {
-            type: String,
-            required: true,
-            trim: true
-        },
+        fullName: { type: String, required: true, trim: true },
         email: {
             type: String,
             required: true,
@@ -20,50 +21,86 @@ module.exports = function () {
             unique: true,
             match: /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/
         },
-        googleProvider: {
-            type: {
-                id: String,
-                token: String
-            },
-            select: false
-        },
-        healthPrograms: {
-            name: String,
-            subscriptionDate: Date
-        }
+        googleProvider: { type: { id: String, token: String }, select: false }
     });
 
     UserSchema.set('toJSON', { getters: true, virtuals: true });
 
-    UserSchema.statics.upsertGoogleUser = function (accessToken, refreshToken, profile, cb) {
-        var that = this;
-        return this.findOne({
-            'googleProvider.id': profile.id
-        }, function (err, user) {
+    UserSchema.statics.upsertGoogleUser = function (accessToken, refreshToken, profile, callback) {
+        var That = this;
+        return this.findOne({ 'googleProvider.id': profile.id }, function (err, user) {
             // no user was found, lets create a new one
             if (!user) {
-                var newUser = new that({
+                var newUser = new That({
                     fullName: profile.displayName,
                     email: profile.emails[0].value,
-                    googleProvider: {
-                        id: profile.id,
-                        token: accessToken
-                    }
+                    googleProvider: { id: profile.id, token: accessToken }
                 });
 
                 newUser.save(function (error, savedUser) {
                     if (error) {
                         console.log(error);
                     }
-                    return cb(error, savedUser);
+                    return callback(error, savedUser);
                 });
             } else {
-                return cb(err, user);
+                return callback(err, user);
             }
         });
-    };
+    }
 
     mongoose.model('User', UserSchema);
 
+    var HealthProgramSchema = new Schema({
+        email: {
+            type: String,
+            required: true,
+            trim: true,
+            select: true,
+            match: /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/
+        },
+        healthProgram: {
+            type: { name: String, subscriptionDate: { type: Date, default: Date.now } }
+        }
+    });
+
+    HealthProgramSchema.set('toJSON', { getters: true, virtuals: true });
+
+    HealthProgramSchema.statics.subscribe = function (userEmail, programName, callback) {
+        var That = this;
+        var newProgram = new That({
+            email: userEmail,
+            healthProgram: { name: programName, subscriptionDate: Date.now }
+        });
+
+        newProgram.save(function (error, savedProgram) {
+            if (error) {
+                console.log(error);
+            }
+            return callback(error, savedProgram);
+        });
+    }
+
+    HealthProgramSchema.statics.unsubscribe = function (userEmail, programName, callback) {
+        return this.erase({ 'email': userEmail, 'healthProgram.name' : programName },
+            function (error, program) {
+            if (error) {
+                console.log(error);
+            }
+            return callback(error, program);
+        });
+    }
+
+    HealthProgramSchema.statics.getAll = function (userEmail, callback) {
+        return this.find({ 'email': userEmail }, function (error, programs) {
+            if (error) {
+                console.log(error);
+            }
+            return callback(error, programs);
+        });
+    }
+
+    mongoose.model('HealthProgram', HealthProgramSchema);
+
     return db;
-};
+}

@@ -15,5 +15,6 @@ module.exports = function () {
             User.upsertGoogleUser(accessToken, refreshToken, profile, function(err, user) {
                 return done(err, user);
             });
-        }));
+        })
+    );
 };
