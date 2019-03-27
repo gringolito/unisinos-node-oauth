@@ -30,6 +30,7 @@ module.exports = {
     },
 
     subscribe: function(userId, programName, callback) {
+        console.log('Subscribind to program: ' + programName);
         User.findById(userId, function (err, user) {
             if (user) {
                 HealthProgram.subscribe(user.email, programName, function (error, program) {

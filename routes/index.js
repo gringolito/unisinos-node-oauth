@@ -35,7 +35,10 @@ router.route('/users/healthPrograms/*')
     })
     .post(decodeToken, healthPrograms.validateUser, function(req, res) {
         console.log(req);
-        healthPrograms.subscribe(req.user.token.id, req.program, function(err, program) {
+        if (!req._body || !req.body.healthProgram) {
+                return res.status(400).send('Failed request');
+        }
+        healthPrograms.subscribe(req.user.token.id, req.body.healthProgram, function(err, program) {
             if (err || !program) {
                 return res.status(400).send('Subscription failed');
             }
@@ -44,7 +47,10 @@ router.route('/users/healthPrograms/*')
     })
     .delete(decodeToken, healthPrograms.validateUser, function(req, res) {
         console.log(req);
-        healthPrograms.unsubscribe(req.user.token.id, req.program, function(err, program) {
+        if (!req._body || !req.body.healthProgram) {
+                return res.status(400).send('Failed request');
+        }
+        healthPrograms.unsubscribe(req.user.token.id, req.body.healthProgram, function(err, program) {
             if (err || !program) {
                 return res.status(400).send('Unsubscription failed');
             }
