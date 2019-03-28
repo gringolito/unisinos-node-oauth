@@ -34,7 +34,6 @@ router.route('/users/healthPrograms/*')
         });
     })
     .post(decodeToken, healthPrograms.validateUser, function(req, res) {
-        console.log(req);
         if (!req._body || !req.body.healthProgram) {
                 return res.status(400).send('Failed request');
         }

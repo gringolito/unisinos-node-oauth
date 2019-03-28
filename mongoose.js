@@ -49,15 +49,6 @@ module.exports = function () {
         });
     }
 
-    UserSchema.statics.findById = function (userId, callback) {
-         return this.findOne({ _id: userId }, function (error, user) {
-            if (error) {
-                console.log(error);
-            }
-            return callback(error, user);
-        });
-    }
-
     mongoose.model('User', UserSchema);
 
     var HealthProgramSchema = new Schema({
@@ -69,7 +60,16 @@ module.exports = function () {
             match: /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/
         },
         healthProgram: {
-            type: { name: String, subscriptionDate: { type: Date, default: Date.now } }
+            type: {
+                name: {
+                    type: String,
+                    required: true
+                },
+                subscriptionDate: {
+                    type: Date,
+                    required: true,
+                }
+           }
         }
     });
 
@@ -79,7 +79,7 @@ module.exports = function () {
         var That = this;
         var newProgram = new That({
             email: userEmail,
-            healthProgram: { name: programName, subscriptionDate: Date.now }
+            healthProgram: { name: programName, subscriptionDate: Date.now() }
         });
 
         newProgram.save(function (error, savedProgram) {
@@ -91,13 +91,13 @@ module.exports = function () {
     }
 
     HealthProgramSchema.statics.unsubscribe = function (userEmail, programName, callback) {
-        return this.erase({ 'email': userEmail, 'healthProgram.name' : programName },
+        return this.erase({ 'email': userEmail, 'healthProgram.name': programName },
             function (error, program) {
-            if (error) {
-                console.log(error);
-            }
-            return callback(error, program);
-        });
+                if (error) {
+                    console.log(error);
+                }
+                return callback(error, program);
+            });
     }
 
     HealthProgramSchema.statics.findAllPrograms = function (userEmail, callback) {

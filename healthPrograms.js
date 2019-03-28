@@ -21,7 +21,12 @@ module.exports = {
         User.findById(userId, function (err, user) {
             if (user) {
                 HealthProgram.findAllPrograms(user.email, function (error, programs) {
-                    return callback(error, programs);
+                    const date = new Date(programs[0].healthProgram.subscriptionDate);
+                    var userProgram = {
+                        'name': programs[0].healthProgram.name,
+                        'subscriptionDate': date.toDateString()
+                    };
+                    return callback(error, userProgram);
                 });
             } else {
                 return callback(err, null);
