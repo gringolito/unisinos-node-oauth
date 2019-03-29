@@ -91,12 +91,12 @@ module.exports = function () {
     }
 
     HealthProgramSchema.statics.unsubscribe = function (userEmail, programName, callback) {
-        return this.erase({ 'email': userEmail, 'healthProgram.name': programName },
-            function (error, program) {
+        return this.remove({ 'email': userEmail, 'healthProgram.name': programName },
+            function (error) {
                 if (error) {
                     console.log(error);
                 }
-                return callback(error, program);
+                return callback(error);
             });
     }
 

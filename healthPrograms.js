@@ -21,12 +21,15 @@ module.exports = {
         User.findById(userId, function (err, user) {
             if (user) {
                 HealthProgram.findAllPrograms(user.email, function (error, programs) {
-                    const date = new Date(programs[0].healthProgram.subscriptionDate);
-                    var userProgram = {
-                        'name': programs[0].healthProgram.name,
-                        'subscriptionDate': date.toDateString()
-                    };
-                    return callback(error, userProgram);
+                    var userPrograms = [{}];
+                    for (var i = 0; i < programs.length; i++) {
+                        const date = new Date(programs[i].healthProgram.subscriptionDate);
+                        userPrograms[i] = {
+                            name: programs[i].healthProgram.name,
+                            subscriptionDate: date.toDateString()
+                        };
+                    }
+                    return callback(error, userPrograms);
                 });
             } else {
                 return callback(err, null);
@@ -35,7 +38,6 @@ module.exports = {
     },
 
     subscribe: function(userId, programName, callback) {
-        console.log('Subscribind to program: ' + programName);
         User.findById(userId, function (err, user) {
             if (user) {
                 HealthProgram.subscribe(user.email, programName, function (error, program) {
@@ -50,11 +52,11 @@ module.exports = {
     unsubscribe: function(userId, programName, callback) {
         User.findById(userId, function (err, user) {
             if (user) {
-                HealthProgram.unsubscribe(user.email, programName, function (error, program) {
-                    return callback(error, program);
+                HealthProgram.unsubscribe(user.email, programName, function (error) {
+                    return callback(error);
                 });
             } else {
-                return callback(err, null);
+                return callback(err);
             }
         });
     }
